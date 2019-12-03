@@ -1,0 +1,24 @@
+{
+  "name": "aoc2017",
+  "version": "0.0.1",
+  "description": "Advent of Code 2017",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run serve",
+    "build": "npm run build-ts && npm run lint",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript\" -c \"cyan.bold\" \"npm run watch-ts\"",
+    "test": "jest --forceExit --coverage --verbose",
+    "watch-test": "npm run test -- --watchAll",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w",
+    "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
+    "debug": "npm run build",
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript\" -c \"cyan.bold\" \"npm run watch-ts\""
+  },
+  "author": "Robert Chrzanowski",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^12.12.14",
+    "fp-ts": "^2.2.0"
+  }
+}
