@@ -33,10 +33,6 @@ class Mem extends Expr {
     }
   }
 
-  // public distributeAdd(a: number): Expr {
-  //   return new Add(new Num(a), this);
-  // }
-
   public distributeMul(a: number): Expr {
     return new Mul(new Num(a), this);
   }
@@ -127,10 +123,6 @@ class Mul extends Expr {
     return new Mul(x, y);
   }
 
-  // public distributeAdd(a: number): Expr {
-  //   return new Add(new Num(a), this);
-  // }
-
   public distributeMul(a: number): Expr {
     const x = this.x.distributeMul(a);
     return new Mul(x, this.y);
@@ -153,10 +145,6 @@ class Num extends Expr {
   public simplify(variables: Set<number>): Expr {
     return this;
   }
-
-  // public distributeAdd(a: number): Expr {
-  //   return new Num(a + this.x);
-  // }
 
   public distributeMul(a: number): Expr {
     return new Num(this.x * a);
