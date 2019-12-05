@@ -2,22 +2,18 @@ import freeze from './freeze';
 import maybe, { Maybe } from './maybe';
 
 export default Object.freeze({
-  of<A>(generator: GeneratorOf<A>): GeneratorMonad<A> {
+  of<A>(generator: () => Generator<A, void, unknown>): GeneratorMonad<A> {
     return new GeneratorMonad(generator);
   },
 
-  from<A>(array: Array<A>): GeneratorMonad<A> {
-    return new GeneratorMonad(function*() {
-      for (const x of array) {
-        yield x;
-      }
-    });
+  from<A>(iterable: { [Symbol.iterator]: () => Iterator<A> }): GeneratorMonad<A> {
+    return new GeneratorMonad(() => iterable[Symbol.iterator]());
   },
 
   ap<A, B>(gf: GeneratorMonad<(x: A) => B>, gx: GeneratorMonad<A>): GeneratorMonad<B> {
     return new GeneratorMonad(function*() {
-      for (const f of gf.generate()) {
-        for (const x of gx.generate()) {
+      for (const f of gf) {
+        for (const x of gx) {
           yield f(x);
         }
       }
@@ -25,13 +21,11 @@ export default Object.freeze({
   },
 });
 
-type GeneratorOf<A> = () => Generator<A, void, unknown>;
-
 class GeneratorMonad<A> {
-  public readonly generate: GeneratorOf<A>;
+  public readonly [Symbol.iterator]: () => Iterator<A, void, unknown>;
 
-  constructor(run: GeneratorOf<A>) {
-    this.generate = run;
+  constructor(run: () => Iterator<A, void, unknown>) {
+    this[Symbol.iterator] = run;
     Object.freeze(this);
   }
 
@@ -39,7 +33,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const x of that.generate()) {
+      for (const x of that) {
         yield f(x);
       }
     });
@@ -49,8 +43,8 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const x of that.generate()) {
-        for (const y of f(x).generate()) {
+      for (const x of that) {
+        for (const y of f(x)) {
           yield y;
         }
       }
@@ -61,8 +55,8 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const _ of that.generate()) {
-        for (const x of gb.generate()) {
+      for (const _ of that) {
+        for (const x of gb) {
           yield x;
         }
       }
@@ -73,8 +67,8 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const x of that.generate()) {
-        for (const _ of gb.generate()) {
+      for (const x of that) {
+        for (const _ of gb) {
           yield x;
         }
       }
@@ -85,7 +79,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      const g = that.generate();
+      const g = that[Symbol.iterator]();
 
       for (; n >= 0; n--) {
         const next = g.next();
@@ -103,7 +97,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const x of that.generate()) {
+      for (const x of that) {
         if (!f(x)) {
           return;
         }
@@ -117,7 +111,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      const g = that.generate();
+      const g = that[Symbol.iterator]();
 
       while (n > 0) {
         const next = g.next();
@@ -129,8 +123,14 @@ class GeneratorMonad<A> {
         n--;
       }
 
-      for (const x of g) {
-        yield x;
+      while (true) {
+        const iter = g.next();
+
+        if (iter.done === true) {
+          return;
+        }
+
+        yield iter.value;
       }
     });
   }
@@ -139,7 +139,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      const g = that.generate();
+      const g = that[Symbol.iterator]();
 
       while (true) {
         const n = g.next();
@@ -154,8 +154,14 @@ class GeneratorMonad<A> {
         }
       }
 
-      for (const x of g) {
-        yield x;
+      while (true) {
+        const iter = g.next();
+
+        if (iter.done === true) {
+          return;
+        }
+
+        yield iter.value;
       }
     });
   }
@@ -164,7 +170,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const x of that.generate()) {
+      for (const x of that) {
         if (f(x)) {
           yield x;
         }
@@ -175,8 +181,8 @@ class GeneratorMonad<A> {
   public zip<B, C>(generator: GeneratorMonad<B>, f: (x: A, y: B) => C): GeneratorMonad<C> {
     const that = this;
     return new GeneratorMonad(function*() {
-      const ga = that.generate();
-      const gb = generator.generate();
+      const ga = that[Symbol.iterator]();
+      const gb = generator[Symbol.iterator]();
 
       while (true) {
         const na = ga.next();
@@ -197,7 +203,7 @@ class GeneratorMonad<A> {
   }
 
   public reduce(f: (x: A,  y: A) => A): Maybe<A> {
-    const g = this.generate();
+    const g = this[Symbol.iterator]();
     const n = g.next();
 
     if (n.done === true) {
@@ -206,15 +212,19 @@ class GeneratorMonad<A> {
 
     let acc = n.value;
 
-    for (const x of g) {
-      acc = f(acc, x);
-    }
+    while (true) {
+      const iter = g.next();
 
-    return maybe.just(acc);
+      if (iter.done === true) {
+        return maybe.just(acc);
+      }
+
+      acc = f(acc, iter.value);
+    }
   }
 
   public reduceWith<B>(acc: B, f: (acc: B,  x: A) => B): B {
-    for (const x of this.generate()) {
+    for (const x of this) {
       acc = f(acc, x);
     }
 
@@ -225,7 +235,7 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      const g = that.generate();
+      const g = that[Symbol.iterator]();
       const n = g.next();
 
       if (n.done === true) {
@@ -235,8 +245,14 @@ class GeneratorMonad<A> {
       let x = n.value;
       yield x;
 
-      for (const y of g) {
-        x = f(x, y);
+      while (true) {
+        const iter = g.next();
+
+        if (iter.done === true) {
+          return;
+        }
+
+        x = f(x, iter.value);
         yield x;
       }
     });
@@ -246,11 +262,21 @@ class GeneratorMonad<A> {
     const that = this;
 
     return new GeneratorMonad(function*() {
-      for (const y of that.generate()) {
+      for (const y of that) {
         acc = f(acc, y);
         yield acc;
       }
     });
+  }
+
+  public count(): number {
+    let i: number = 0;
+
+    for (const x of this) {
+      i++;
+    }
+
+    return i;
   }
 }
 

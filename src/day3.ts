@@ -1,4 +1,4 @@
-import fs, { writeSync } from 'fs';
+import fs from 'fs';
 import parse from './parse';
 import { lines } from './pipes';
 

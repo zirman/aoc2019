@@ -34,7 +34,7 @@ class Mem extends Expr {
   }
 
   public distributeMul(a: number): Expr {
-    return new Mul(new Num(a), this);
+    return new Mul(new Num(a * this.x), this);
   }
 }
 
