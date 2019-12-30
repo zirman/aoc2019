@@ -293,7 +293,7 @@ class ParseString extends Parser<string> {
   }
 
   public parseAt(cs: Array<string>, i: number): Result<string> {
-    let j: number = 0;
+    let j = 0;
 
     while (j < this.ss.length) {
       if (i >= cs.length || cs[i] !== this.ss[j]) {

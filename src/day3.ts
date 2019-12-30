@@ -26,7 +26,7 @@ fs.readFile('../input/day3.txt', 'utf8', (error, contents) => {
   let manhattanDistance = Infinity;
   let stepsDistance = Infinity;
 
-  let wire: number = 0;
+  let wire = 0;
   const ls = lines(contents);
 
   const w1: Map<string, number> = new Map();

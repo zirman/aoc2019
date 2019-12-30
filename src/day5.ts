@@ -150,7 +150,7 @@ class Num extends Expr {
   }
 }
 
-fs.readFile('../input/day2.txt', 'utf8', (error, contents) => {
+fs.readFile('../input/day5.txt', 'utf8', (error, contents) => {
   if (error !== null) {
     console.error(error);
     return;
@@ -210,53 +210,71 @@ fs.readFile('../input/day2.txt', 'utf8', (error, contents) => {
 
   // part 2 expression
   // calculate position 0 through induction
-  console.log(calc(0, ip));
+//   console.log(calc(0, ip));
 
-  function calc(i: number, ip: number): number {
-    while (true) {
-      if (ip === 0) {
-        return a[i];
-      }
+//   function calc(i: number, ip: number): number {
+//     while (true) {
+//       if (ip === 0) {
+//         return a[i];
+//       }
 
-      ip -= 4;
+//       ip -= 4;
 
-      if (a[ip + 3] === i) {
-        if (a[ip] === 1) {
-          return calc(a[ip + 1], ip) + calc(a[ip + 2], ip);
-        } else if (a[ip] === 2) {
-          return calc(a[ip + 1], ip) * calc(a[ip + 2], ip);
-        } else {
-          throw Error();
-        }
-      }
-    }
-  }
+//       if (a[ip + 3] === i) {
+//         if (a[ip] === 1) {
+//           return calc(a[ip + 1], ip) + calc(a[ip + 2], ip);
+//         } else if (a[ip] === 2) {
+//           return calc(a[ip + 1], ip) * calc(a[ip + 2], ip);
+//         } else {
+//           throw Error();
+//         }
+//       }
+//     }
+//   }
 
-  // print expression
-  console.log(expr(0, ip).simplify(new Set([1, 2])).print());
+//   // print expression
+//   console.log(expr(0, ip).simplify(new Set([1, 2])).print());
 
-  // now solve on paper because there are multiple solutions but only one that is in the range 0-99
-  // 19160113 - y = 248832 * x
-  // y = 49
-  // x = 77
+//   // now solve on paper because there are multiple solutions but only one that is in the range 0-99
+//   // 19160113 - y = 248832 * x
+//   // y = 49
+//   // x = 77
 
-  function expr(i: number, ip: number): Expr {
-    while (true) {
-      if (ip === 0) {
-        return new Mem(a[i], i);
-      }
+//   function expr(i: number, ip: number): Expr {
+//     while (true) {
+//       if (ip === 0) {
+//         return new Mem(a[i], i);
+//       }
 
-      ip -= 4;
+//       ip -= 4;
 
-      if (a[ip + 3] === i) {
-        if (a[ip] === 1) {
-          return new Add(expr(a[ip + 1], ip), expr(a[ip + 2], ip));
-        } else if (a[ip] === 2) {
-          return new Mul(expr(a[ip + 1], ip), expr(a[ip + 2], ip));
-        } else {
-          throw Error();
-        }
-      }
-    }
-  }
+//       if (a[ip + 3] === i) {
+//         if (a[ip] === 1) {
+//           return new Add(expr(a[ip + 1], ip), expr(a[ip + 2], ip));
+//         } else if (a[ip] === 2) {
+//           return new Mul(expr(a[ip + 1], ip), expr(a[ip + 2], ip));
+//         } else {
+//           throw Error();
+//         }
+//       }
+//     }
+//   }
 });
+
+// async function foo(): Promise<number> {
+//   yield 1;
+//   yield 2;
+//   yield 3;
+// }
+
+// async function bar(): Promise<number> {
+//   yield 4;
+//   yield 5;
+//   yield 6;
+// }
+
+// const asdf = new AsyncMonad(foo).zip(new AsyncMonad(bar));
+
+// for await (const x of asdf) {
+//   console.log(x);
+// }
